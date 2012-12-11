@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include <usb.h>
 #include <errno.h>
 
@@ -197,7 +198,7 @@ TemperSendCommand(Temper *t, int a, int b, int c, int d, int e, int f, int g, in
 static int
 TemperGetData(Temper *t, char *buf, int len)
 {
-	int ret;
+//	int ret;
 
 	return usb_control_msg(t->handle, 0xa1, 1, 0x300, 0x01,
 			    (char *) buf, len, t->timeout);
