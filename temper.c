@@ -196,6 +196,102 @@ TemperSendCommand(Temper *t, int a, int b, int c, int d, int e, int f, int g, in
 }
 
 static int
+TemperSendCommand8(Temper *t, int a, int b, int c, int d, int e, int f, int g, int h)
+{
+	unsigned char buf[8];
+	int ret;
+
+	buf[0] = a;
+	buf[1] = b;
+	buf[2] = c;
+	buf[3] = d;
+	buf[4] = e;
+	buf[5] = f;
+	buf[6] = g;
+	buf[7] = h;
+
+	if(t->debug) {
+		printf("sending bytes %d, %d, %d, %d, %d, %d, %d, %d\n",
+		       a, b, c, d, e, f, g, h);
+	}
+
+	ret = usb_control_msg(t->handle, 0x21, 9, 0x200, 0x01,
+			    (char *) buf, sizeof(buf), t->timeout);
+
+	if(t->debug) {
+		printf("receiving %d bytes\n",ret);
+		for(int i = 0; i < ret; ++i) {
+			printf("%d ", buf[i]);
+			if ((i+1)%8 == 0) printf("\n");
+		}
+		printf("\n");
+        }
+
+	if(ret != sizeof(buf)) {
+		perror("usb_control_msg failed");
+		return -1;
+	}
+	return 0;
+}
+
+static int
+TemperSendCommand2(Temper *t, int a, int b)
+{
+	unsigned char buf[2];
+	int ret;
+
+	bzero(buf, sizeof(buf));
+	buf[0] = a;
+	buf[1] = b;
+
+	if(t->debug) {
+		printf("sending bytes %d, %d\n",
+		       a, b);
+	}
+
+	ret = usb_control_msg(t->handle, 0x21, 9, 0x201, 0x00,
+			    (char *) buf, sizeof(buf), t->timeout);
+
+	if(t->debug) {
+		printf("receiving %d bytes\n",ret);
+		for(int i = 0; i < ret; ++i) {
+			printf("%d ", buf[i]);
+			if ((i+1)%8 == 0) printf("\n");
+		}
+		printf("\n");
+        }
+
+	if(ret != sizeof(buf)) {
+		perror("usb_control_msg failed");
+		return -1;
+	}
+	return 0;
+}
+
+static int TemperInterruptRead(Temper* t) {
+	int ret;
+
+	unsigned char	buf[8];
+	bzero(buf, sizeof(buf));
+
+	if (t->debug) {
+		printf("interrupt read\n");
+	}
+
+	ret = usb_interrupt_read(t->handle, 0x82, (char*)buf, sizeof(buf), t->timeout);
+	if(t->debug) {
+		printf("receiving %d bytes\n",ret);
+		for(int i = 0; i < ret; ++i) {
+			printf("%d ", buf[i]);
+			if ((i+1)%8 == 0) printf("\n");
+		}
+		printf("\n");
+        }
+
+	return ret;
+}
+
+static int
 TemperGetData(Temper *t, char *buf, int len)
 {
 //	int ret;
@@ -217,6 +313,17 @@ TemperGetTemperatureInC(Temper *t, float *tempC)
 	}
 	TemperSendCommand(t, 10, 11, 12, 13, 0, 0, 1, 0);
 	ret = TemperGetData(t, buf, 256);
+
+	if(t->debug) {
+		printf("receiving %d bytes\n",ret);
+		for(int i = 0; i < ret; ++i) {
+			printf("%d ", buf[i]);
+			if ((i+1)%8 == 0) printf("\n");
+		}
+		printf("\n");
+        }
+
+
 	if(ret < 2) {
 		return -1;
 	}
@@ -270,6 +377,12 @@ main(void)
 	TemperSendCommand(t, 0, 0, 0, 0, 0, 0, 0, 0);
 */
 
+	printf("[\n");
+	TemperSendCommand2(t, 0x01,0x01);
+	TemperSendCommand8(t, 0x01, 0x80, 0x33, 0x01, 0x00, 0x00, 0x00, 0x00);
+	TemperInterruptRead(t);
+	printf("]\n");
+#if 0
 	bzero(buf, 256);
 	ret = TemperGetOtherStuff(t, buf, 256);
 	printf("Other Stuff (%d bytes):\n", ret);
@@ -292,6 +405,7 @@ main(void)
 		       tempc);
 		sleep(10);
 	}
+#endif
 	return 0;
 }
 
