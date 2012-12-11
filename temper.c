@@ -33,8 +33,20 @@
 
 #include "temper.h"
 
-#define VENDOR_ID  0x1130
-#define PRODUCT_ID 0x660c
+struct Product { 
+	uint16_t	vendor;
+	uint16_t	id;
+};
+
+static const struct Product ProductList[] = {
+	{
+		0x1130, 0x660c /* Original TEMPer by RDing */
+	},
+	{
+		0x0c45, 0x7401 /* TEMPer2V1.3 by RDing */
+	},
+};
+static const unsigned ProductCount = sizeof(ProductList)/sizeof(struct Product);
 
 struct Temper {
 	struct usb_device *device;
@@ -124,15 +136,17 @@ TemperCreateFromDeviceNumber(int deviceNum, int timeout, int debug)
 			       dev->descriptor.idVendor,
 			       dev->descriptor.idProduct);
 		}
-		if(dev->descriptor.idVendor == VENDOR_ID &&
-		   dev->descriptor.idProduct == PRODUCT_ID) {
-			if(debug) {
-			    printf("Found deviceNum %d\n", n);
+		for(unsigned i = 0; i < ProductCount; ++i) {	
+			if(dev->descriptor.idVendor == ProductList[i].vendor &&
+			   dev->descriptor.idProduct == ProductList[i].id) {
+				if(debug) {
+				    printf("Found deviceNum %d\n", n);
+				}
+				if(n == deviceNum) {
+					return TemperCreate(dev, timeout, debug);
+				}
+				n++;
 			}
-			if(n == deviceNum) {
-				return TemperCreate(dev, timeout, debug);
-			}
-			n++;
 		}
 	    }
 	}
