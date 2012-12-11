@@ -1,11 +1,9 @@
 HOSTCC:=$(CC)
 CC:=$(CROSS_COMPILE)$(HOSTCC)
+CFLAGS:=-std=c99 -Wall -O2 $(CFLAGS) -I extra/include
 
 HOSTLD:=$(LD)
 LD:=$(CROSS_COMPILE)$(HOSTLD)
-
-CFLAGS:=-std=c99 -Wall -O2 $(CFLAGS) -I extra/include
-
 LDFLAGS:=-L extra/lib
 
 all:	temper
