@@ -56,6 +56,11 @@ struct Temper {
 	int timeout;
 };
 
+struct TemperData {
+	float tempA;
+	float tempB;
+};
+
 Temper *
 TemperCreate(struct usb_device *dev, int timeout, int debug)
 {
@@ -268,17 +273,14 @@ TemperSendCommand2(Temper *t, int a, int b)
 	return 0;
 }
 
-static int TemperInterruptRead(Temper* t) {
+static int TemperInterruptRead(Temper* t, unsigned char *buf, unsigned int len) {
 	int ret;
-
-	unsigned char	buf[8];
-	bzero(buf, sizeof(buf));
 
 	if (t->debug) {
 		printf("interrupt read\n");
 	}
 
-	ret = usb_interrupt_read(t->handle, 0x82, (char*)buf, sizeof(buf), t->timeout);
+	ret = usb_interrupt_read(t->handle, 0x82, (char*)buf, len, t->timeout);
 	if(t->debug) {
 		printf("receiving %d bytes\n",ret);
 		for(int i = 0; i < ret; ++i) {
@@ -291,6 +293,29 @@ static int TemperInterruptRead(Temper* t) {
 	return ret;
 }
 
+static float
+TemperByteToCelcius(Temper* t, uint8_t high, uint8_t low) {
+	int16_t word = ((int8_t)high << 8) | low;
+
+#if 0
+	word += t->offset; /* calibration value */
+#endif
+	
+	return ((float)word) * (125.0 / 32000.0);
+}
+
+static int
+TemperGetData(Temper *t, struct TemperData *data) {
+	unsigned char buf[8];
+	int ret = TemperInterruptRead(t, buf, sizeof(buf));
+
+	data->tempA = TemperByteToCelcius(t, buf[2], buf[3]);
+	data->tempB = TemperByteToCelcius(t, buf[4], buf[5]);
+	
+	return ret;
+}
+
+/*
 static int
 TemperGetData(Temper *t, char *buf, int len)
 {
@@ -299,7 +324,8 @@ TemperGetData(Temper *t, char *buf, int len)
 	return usb_control_msg(t->handle, 0xa1, 1, 0x300, 0x01,
 			    (char *) buf, len, t->timeout);
 }
-
+*/
+/*
 int
 TemperGetTemperatureInC(Temper *t, float *tempC)
 {
@@ -333,7 +359,8 @@ TemperGetTemperatureInC(Temper *t, float *tempC)
 	*tempC = temperature * (125.0 / 32000.0);
 	return 0;
 }
-
+*/
+/*
 int
 TemperGetOtherStuff(Temper *t, char *buf, int length)
 {
@@ -342,7 +369,7 @@ TemperGetOtherStuff(Temper *t, char *buf, int length)
 	TemperSendCommand(t, 10, 11, 12, 13, 0, 0, 1, 0);
 	return TemperGetData(t, buf, length);
 }
-
+*/
 
 #ifdef UNIT_TEST
 
@@ -380,7 +407,14 @@ main(void)
 	printf("[\n");
 	TemperSendCommand2(t, 0x01,0x01);
 	TemperSendCommand8(t, 0x01, 0x80, 0x33, 0x01, 0x00, 0x00, 0x00, 0x00);
-	TemperInterruptRead(t);
+	/* TemperInterruptRead(t); */
+	
+	struct TemperData data;
+	ret = TemperGetData(t,&data);
+	printf("ret = %d; tempA = %f°C tempB = %f°C\n",
+		ret,
+		data.tempA,
+		data.tempB);
 	printf("]\n");
 #if 0
 	bzero(buf, 256);
