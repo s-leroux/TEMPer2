@@ -37,14 +37,24 @@
 struct Product { 
 	uint16_t	vendor;
 	uint16_t	id;
+	const char	*name;
 };
 
 static const struct Product ProductList[] = {
+/*
+	Not supported: commands are different
 	{
-		0x1130, 0x660c /* Original TEMPer by RDing */
+		0x1130, 0x660c,
+		"Original RDing TEMPer"
+	},
+*/
+	{
+		0x0c45, 0x7401,
+		"RDing TEMPer2V1.3"
 	},
 	{
-		0x0c45, 0x7401 /* TEMPer2V1.3 by RDing */
+		0x0c45, 0x7402,
+		"RDing TEMPerHumiV1.1"
 	},
 };
 static const unsigned ProductCount = sizeof(ProductList)/sizeof(struct Product);
@@ -54,6 +64,7 @@ struct Temper {
 	usb_dev_handle *handle;
 	int debug;
 	int timeout;
+	const struct Product	*product;
 };
 
 struct TemperData {
@@ -62,14 +73,22 @@ struct TemperData {
 };
 
 Temper *
-TemperCreate(struct usb_device *dev, int timeout, int debug)
+TemperCreate(struct usb_device *dev, int timeout, int debug, const struct Product* product)
 {
 	Temper *t;
 	int ret;
 
+	if (debug) {
+		printf("Temper device %s (%04x:%04x)\n",
+			product->name,
+			product->vendor,
+			product->id);
+	}
+
 	t = calloc(1, sizeof(*t));
 	t->device = dev;
 	t->debug = debug;
+	t->product = product;
 	t->timeout = timeout;
 	t->handle = usb_open(t->device);
 	if(!t->handle) {
@@ -149,7 +168,9 @@ TemperCreateFromDeviceNumber(int deviceNum, int timeout, int debug)
 				    printf("Found deviceNum %d\n", n);
 				}
 				if(n == deviceNum) {
-					return TemperCreate(dev, timeout, debug);
+					return TemperCreate(dev, timeout,
+							 debug, 
+							 &ProductList[i]);
 				}
 				n++;
 			}
