@@ -35,8 +35,8 @@ struct TemperData {
 	float value;
 	enum Unit {
 		TEMPER_UNAVAILABLE,	/* unavailable data */
-		TEMPER_REL_HUM, 	/* realtive humidity (in %) */
-		TEMPER_ABS_TEMP,	/* absolute temperature  (in K) */
+		TEMPER_REL_HUM, 	/* relative humidity (in %) */
+		TEMPER_ABS_TEMP,	/* absolute temperature  (in °C) */
 	} unit;
 };
 typedef struct TemperData TemperData;
