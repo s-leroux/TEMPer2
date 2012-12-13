@@ -327,59 +327,18 @@ TemperGetData(Temper *t, struct TemperData *data, unsigned int count) {
 	return ret;
 }
 
-/*
-static int
-TemperGetData(Temper *t, char *buf, int len)
-{
-//	int ret;
+int TemperGetSerialNumber(Temper* t, char* buf, unsigned int len) {
+	if (len == 0)
+		return -EINVAL;
 
-	return usb_control_msg(t->handle, 0xa1, 1, 0x300, 0x01,
-			    (char *) buf, len, t->timeout);
-}
-*/
-/*
-int
-TemperGetTemperatureInC(Temper *t, float *tempC)
-{
-	char buf[256];
-	int ret, temperature, i;
-
-	TemperSendCommand(t, 10, 11, 12, 13, 0, 0, 2, 0);
-	TemperSendCommand(t, 0x54, 0, 0, 0, 0, 0, 0, 0);
-	for(i = 0; i < 7; i++) {
-		TemperSendCommand(t, 0, 0, 0, 0, 0, 0, 0, 0);
-	}
-	TemperSendCommand(t, 10, 11, 12, 13, 0, 0, 1, 0);
-	ret = TemperGetData(t, buf, 256);
-
-	if(t->debug) {
-		printf("receiving %d bytes\n",ret);
-		for(int i = 0; i < ret; ++i) {
-			printf("%02x ", buf[i]);
-			if ((i+1)%8 == 0) printf("\n");
-		}
-		printf("\n");
-        }
-
-
-	if(ret < 2) {
-		return -1;
+	if (t->device->descriptor.iSerialNumber == 0) {
+		buf[0] = 0;
+		return -ENOENT;
 	}
 
-	temperature = (buf[1] & 0xFF) + (buf[0] << 8);	
-	temperature += 1152;			// calibration value
-	*tempC = temperature * (125.0 / 32000.0);
-	return 0;
+
+	return usb_get_string_simple(t->handle,
+					t->device->descriptor.iSerialNumber,
+					buf, len);
 }
-*/
-/*
-int
-TemperGetOtherStuff(Temper *t, char *buf, int length)
-{
-	TemperSendCommand(t, 10, 11, 12, 13, 0, 0, 2, 0);
-	TemperSendCommand(t, 0x52, 0, 0, 0, 0, 0, 0, 0);
-	TemperSendCommand(t, 10, 11, 12, 13, 0, 0, 1, 0);
-	return TemperGetData(t, buf, length);
-}
-*/
 

@@ -74,5 +74,7 @@ int TemperGetData(Temper *t, TemperData *data, unsigned int count);
 
 int TemperInterruptRead(Temper* t, unsigned char *buf, unsigned int len);
 
+int TemperGetSerialNumber(Temper* t, char* buf, unsigned int len);
+
 #endif
 

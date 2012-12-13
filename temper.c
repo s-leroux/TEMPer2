@@ -86,7 +86,9 @@ main(void)
 			printf(";%f %s", 
 				data[i].value, 
 				TemperUnitToString(data[i].unit));
-		printf(";%s\n", t->product->name);
+		char sn[80];
+		TemperGetSerialNumber(t, sn, sizeof(sn));
+		printf(";%s;%s\n", t->product->name, sn);
 	}
 
 	return 0;
