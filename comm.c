@@ -186,36 +186,6 @@ TemperFree(Temper *t)
 	}
 }
 
-static int
-TemperSendCommand(Temper *t, int a, int b, int c, int d, int e, int f, int g, int h)
-{
-	unsigned char buf[32];
-	int ret;
-
-	bzero(buf, 32);
-	buf[0] = a;
-	buf[1] = b;
-	buf[2] = c;
-	buf[3] = d;
-	buf[4] = e;
-	buf[5] = f;
-	buf[6] = g;
-	buf[7] = h;
-
-	if(t->debug) {
-		printf("sending bytes %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x\n",
-		       a, b, c, d, e, f, g, h);
-	}
-
-	ret = usb_control_msg(t->handle, 0x21, 9, 0x200, 0x01,
-			    (char *) buf, 32, t->timeout);
-	if(ret != 32) {
-		perror("usb_control_msg failed");
-		return -1;
-	}
-	return 0;
-}
-
 int
 TemperSendCommand8(Temper *t, int a, int b, int c, int d, int e, int f, int g, int h)
 {
