@@ -203,21 +203,12 @@ TemperSendCommand8(Temper *t, int a, int b, int c, int d, int e, int f, int g, i
 	buf[7] = h;
 
 	if(t->debug) {
-		printf("sending bytes %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x\n",
-		       a, b, c, d, e, f, g, h);
+		printf("sending bytes %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x (buffer len = %d)\n",
+		       a, b, c, d, e, f, g, h, sizeof(buf));
 	}
 
 	ret = usb_control_msg(t->handle, 0x21, 9, 0x200, 0x01,
 			    (char *) buf, sizeof(buf), t->timeout);
-
-	if(t->debug) {
-		printf("receiving %d bytes\n",ret);
-		for(int i = 0; i < ret; ++i) {
-			printf("%02x ", buf[i]);
-			if ((i+1)%8 == 0) printf("\n");
-		}
-		printf("\n");
-        }
 
 	if(ret != sizeof(buf)) {
 		perror("usb_control_msg failed");
@@ -237,21 +228,12 @@ TemperSendCommand2(Temper *t, int a, int b)
 	buf[1] = b;
 
 	if(t->debug) {
-		printf("sending bytes %02x, %02x\n",
-		       a, b);
+		printf("sending bytes %02x, %02x (buffer len = %d)\n",
+		       a, b, sizeof(buf));
 	}
 
 	ret = usb_control_msg(t->handle, 0x21, 9, 0x201, 0x00,
 			    (char *) buf, sizeof(buf), t->timeout);
-
-	if(t->debug) {
-		printf("receiving %d bytes\n",ret);
-		for(int i = 0; i < ret; ++i) {
-			printf("%02x ", buf[i]);
-			if ((i+1)%8 == 0) printf("\n");
-		}
-		printf("\n");
-        }
 
 	if(ret != sizeof(buf)) {
 		perror("usb_control_msg failed");

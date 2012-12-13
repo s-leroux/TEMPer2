@@ -38,18 +38,22 @@ main(void)
 */
 
 	printf("[\n");
-	TemperSendCommand2(t, 0x01,0x01);
+//	TemperSendCommand2(t, 0x01,0x01);
 //	TemperSendCommand8(t, 0x48, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
 	TemperSendCommand8(t, 0x01, 0x80, 0x33, 0x01, 0x00, 0x00, 0x00, 0x00);
-	/* TemperInterruptRead(t); */
+	if (0) {
+		unsigned char buf[8];
+		TemperInterruptRead(t, buf, sizeof(buf));
+	}
+	else {
+		struct TemperData data;
+		ret = TemperGetData(t,&data);
+		printf("ret = %d; tempA = %f°C tempB = %f°C\n",
+			ret,
+			data.tempA,
+			data.tempB);
+	}
 
-	// sleep(1);	
-	struct TemperData data;
-	ret = TemperGetData(t,&data);
-	printf("ret = %d; tempA = %f°C tempB = %f°C\n",
-		ret,
-		data.tempA,
-		data.tempB);
 	printf("]\n");
 #if 0
 	bzero(buf, 256);
