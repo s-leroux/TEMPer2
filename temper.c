@@ -208,7 +208,7 @@ TemperSendCommand(Temper *t, int a, int b, int c, int d, int e, int f, int g, in
 	buf[7] = h;
 
 	if(t->debug) {
-		printf("sending bytes %d, %d, %d, %d, %d, %d, %d, %d\n",
+		printf("sending bytes %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x\n",
 		       a, b, c, d, e, f, g, h);
 	}
 
@@ -224,9 +224,10 @@ TemperSendCommand(Temper *t, int a, int b, int c, int d, int e, int f, int g, in
 static int
 TemperSendCommand8(Temper *t, int a, int b, int c, int d, int e, int f, int g, int h)
 {
-	unsigned char buf[8];
+	unsigned char buf[8+8*8];
 	int ret;
 
+	bzero(buf, sizeof(buf));
 	buf[0] = a;
 	buf[1] = b;
 	buf[2] = c;
@@ -237,7 +238,7 @@ TemperSendCommand8(Temper *t, int a, int b, int c, int d, int e, int f, int g, i
 	buf[7] = h;
 
 	if(t->debug) {
-		printf("sending bytes %d, %d, %d, %d, %d, %d, %d, %d\n",
+		printf("sending bytes %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x\n",
 		       a, b, c, d, e, f, g, h);
 	}
 
@@ -247,7 +248,7 @@ TemperSendCommand8(Temper *t, int a, int b, int c, int d, int e, int f, int g, i
 	if(t->debug) {
 		printf("receiving %d bytes\n",ret);
 		for(int i = 0; i < ret; ++i) {
-			printf("%d ", buf[i]);
+			printf("%02x ", buf[i]);
 			if ((i+1)%8 == 0) printf("\n");
 		}
 		printf("\n");
@@ -263,7 +264,7 @@ TemperSendCommand8(Temper *t, int a, int b, int c, int d, int e, int f, int g, i
 static int
 TemperSendCommand2(Temper *t, int a, int b)
 {
-	unsigned char buf[2];
+	unsigned char buf[8+8*8];
 	int ret;
 
 	bzero(buf, sizeof(buf));
@@ -271,7 +272,7 @@ TemperSendCommand2(Temper *t, int a, int b)
 	buf[1] = b;
 
 	if(t->debug) {
-		printf("sending bytes %d, %d\n",
+		printf("sending bytes %02x, %02x\n",
 		       a, b);
 	}
 
@@ -281,7 +282,7 @@ TemperSendCommand2(Temper *t, int a, int b)
 	if(t->debug) {
 		printf("receiving %d bytes\n",ret);
 		for(int i = 0; i < ret; ++i) {
-			printf("%d ", buf[i]);
+			printf("%02x ", buf[i]);
 			if ((i+1)%8 == 0) printf("\n");
 		}
 		printf("\n");
@@ -305,7 +306,7 @@ static int TemperInterruptRead(Temper* t, unsigned char *buf, unsigned int len) 
 	if(t->debug) {
 		printf("receiving %d bytes\n",ret);
 		for(int i = 0; i < ret; ++i) {
-			printf("%d ", buf[i]);
+			printf("%02x ", buf[i]);
 			if ((i+1)%8 == 0) printf("\n");
 		}
 		printf("\n");
@@ -364,7 +365,7 @@ TemperGetTemperatureInC(Temper *t, float *tempC)
 	if(t->debug) {
 		printf("receiving %d bytes\n",ret);
 		for(int i = 0; i < ret; ++i) {
-			printf("%d ", buf[i]);
+			printf("%02x ", buf[i]);
 			if ((i+1)%8 == 0) printf("\n");
 		}
 		printf("\n");
@@ -427,9 +428,11 @@ main(void)
 
 	printf("[\n");
 	TemperSendCommand2(t, 0x01,0x01);
+//	TemperSendCommand8(t, 0x48, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
 	TemperSendCommand8(t, 0x01, 0x80, 0x33, 0x01, 0x00, 0x00, 0x00, 0x00);
 	/* TemperInterruptRead(t); */
-	
+
+	// sleep(1);	
 	struct TemperData data;
 	ret = TemperGetData(t,&data);
 	printf("ret = %d; tempA = %f°C tempB = %f°C\n",
