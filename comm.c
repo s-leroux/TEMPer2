@@ -34,11 +34,20 @@
 
 #include "comm.h"
 
+typedef int (*TemperConvertFct)(Temper*, int16_t word, TemperData* dst);
+
 struct Product { 
-	uint16_t	vendor;
-	uint16_t	id;
-	const char	*name;
+	uint16_t		vendor;
+	uint16_t		id;
+	const char		*name;
+	TemperConvertFct	convert[2]; /* Arbitrary limit ? */
 };
+
+
+static int TEMPer2V13ToTemperature(Temper*,int16_t word, TemperData* dst);
+static int TEMPerHUMToTemperature(Temper*,int16_t word, TemperData* dst);
+static int TEMPerHUMToHumidity(Temper*,int16_t word, TemperData* dst);
+static int TemperUnavailable(Temper*,int16_t word, TemperData* dst);
 
 static const struct Product ProductList[] = {
 /*
@@ -52,13 +61,21 @@ static const struct Product ProductList[] = {
 		/* Analog Device ADT75 (or similar) based device */
 		/* with two temperature sensors (internal & external) */
 		0x0c45, 0x7401,
-		"RDing TEMPer2V1.3"
+		"RDing TEMPer2V1.3",
+		{
+			TEMPer2V13ToTemperature,
+			TEMPer2V13ToTemperature,
+		},
 	},
 	{
 		/* Sensirion SHT1x based device */
 		/* with internal humidity & temperature sensor */
 		0x0c45, 0x7402,
-		"RDing TEMPerHumiV1.1"
+		"RDing TEMPerHumiV1.1",
+		{
+			TEMPerHUMToTemperature,
+			TEMPerHUMToHumidity,
+		},
 	},
 };
 static const unsigned ProductCount = sizeof(ProductList)/sizeof(struct Product);
@@ -266,15 +283,48 @@ int TemperInterruptRead(Temper* t, unsigned char *buf, unsigned int len) {
 	return ret;
 }
 
-static float
-TemperByteToCelcius(Temper* t, uint8_t high, uint8_t low) {
-	int16_t word = ((int8_t)high << 8) | low;
-
+static int TEMPer2V13ToTemperature(Temper* t, int16_t word, TemperData* dst) {
 #if 0
 	word += t->offset; /* calibration value */
 #endif
-	
-	return ((float)word) * (125.0 / 32000.0);
+
+	dst->value = ((float)word) * (125.0 / 32000.0);
+	dst->unit = TEMPER_ABS_TEMP;
+
+	return 0;
+}
+
+static int TEMPerHUMToTemperature(Temper* t, int16_t word, TemperData* dst) {
+#if 0
+	word += t->offset; /* calibration value */
+#endif
+
+	/* assuming Vdd = 5V (from USB) and 14bit precision */
+	dst->value = ((float)word) * (0.01) + -40.1;
+	dst->unit = TEMPER_ABS_TEMP;
+
+	return 0;
+}
+
+static int TEMPerHUMToHumidity(Temper* t, int16_t word, TemperData* dst) {
+	const float rh = (float)word;
+
+	/* assuming 12 bits readings */
+	const float c1 = -2.0468;
+	const float c2 = .0367;
+	const float c3 = -1.5955e-6;
+
+	dst->value = c1 + c2*rh + c3*rh*rh;
+	dst->unit = TEMPER_REL_HUM;
+
+	return 0;
+}
+
+static int TemperUnavailable(Temper* t, int16_t word, TemperData* dst) {
+	dst->value = 0.0;
+	dst->unit = TEMPER_UNAVAILABLE;
+
+	return 0;
 }
 
 int
@@ -284,12 +334,11 @@ TemperGetData(Temper *t, struct TemperData *data, unsigned int count) {
 
 	for(int i = 0; i < count; ++i) {
 		if ((2*i+3) < ret) {
-			data[i].value = TemperByteToCelcius(t, buf[2*i+2], buf[2*i+3]);
-			data[i].unit = TEMPER_ABS_TEMP;
+			int16_t word = ((int8_t)buf[2*i+2] << 8) | buf[2*i+3];
+			t->product->convert[i](t, word, &data[i]);
 		}
 		else {
-			data[i].value = 0.0;
-			data[i].unit = TEMPER_UNAVAILABLE;
+			TemperUnavailable(t, 0, &data[i]);
 		}
 	}
 	
