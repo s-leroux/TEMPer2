@@ -6,12 +6,14 @@ HOSTLD:=$(LD)
 LD:=$(CROSS_COMPILE)$(HOSTLD)
 LDFLAGS:=-L extra/lib
 
+TEMPER_OBJS:=comm.o
+
 all:	temper
 
-temper.o:	temper.c
+%.o:	%.c
 	$(CC) -c $(CFLAGS) -DUNIT_TEST -o $@ $^
 
-temper:		temper.o
+temper:		$(TEMPER_OBJS) temper.o
 	$(CC) $(LDFLAGS) -o $@ $^ -lusb
 
 clean:		

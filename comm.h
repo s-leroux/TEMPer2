@@ -1,5 +1,5 @@
-#ifndef TEMPER_H
-#define TEMPER_H
+#ifndef TEMPER_COMM_H
+#define TEMPER_COMM_H
 
 /*
  * Temper.h by Robert Kavaler (c) 2009 (relavak.com)
@@ -29,6 +29,11 @@
 
 typedef struct Temper Temper;
 
+struct TemperData {
+	float tempA;
+	float tempB;
+};
+typedef struct TemperData TemperData;
 
 Temper *TemperCreateFromDeviceNumber(int deviceNum, int timeout, int debug);
 void TemperFree(Temper *t);
@@ -36,4 +41,9 @@ void TemperFree(Temper *t);
 int TemperGetTemperatureInC(Temper *t, float *tempC);
 int TempterGetOtherStuff(Temper *t, char *buf, int length);
 
+int TemperSendCommand8(Temper *t, int a, int b, int c, int d, int e, int f, int g, int h);
+int TemperSendCommand2(Temper *t, int a, int b);
+int TemperGetData(Temper *t, TemperData *data);
+
 #endif
+
