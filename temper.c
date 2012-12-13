@@ -74,12 +74,13 @@ main(void)
 		TemperInterruptRead(t, buf, sizeof(buf));
 	}
 	else {
-		struct TemperData data;
-		ret = TemperGetData(t,&data);
-		printf("ret = %d; tempA = %f°C tempB = %f°C\n",
-			ret,
-			data.tempA,
-			data.tempB);
+		TemperData data[2];
+		const unsigned int count = sizeof(data)/sizeof(TemperData);
+		ret = TemperGetData(t,data, count);
+		printf("ret = %d;", ret);
+		for (unsigned i = 0; i < count; ++i)
+			printf("data[%d] = %f;%d;", i, data[i].value, data[i].unit);
+		printf("\n");
 	}
 
 	printf("]\n");

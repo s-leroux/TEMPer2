@@ -278,12 +278,20 @@ TemperByteToCelcius(Temper* t, uint8_t high, uint8_t low) {
 }
 
 int
-TemperGetData(Temper *t, struct TemperData *data) {
+TemperGetData(Temper *t, struct TemperData *data, unsigned int count) {
 	unsigned char buf[8];
 	int ret = TemperInterruptRead(t, buf, sizeof(buf));
 
-	data->tempA = TemperByteToCelcius(t, buf[2], buf[3]);
-	data->tempB = TemperByteToCelcius(t, buf[4], buf[5]);
+	for(int i = 0; i < count; ++i) {
+		if ((2*i+3) < ret) {
+			data[i].value = TemperByteToCelcius(t, buf[2*i+2], buf[2*i+3]);
+			data[i].unit = TEMPER_ABS_TEMP;
+		}
+		else {
+			data[i].value = 0.0;
+			data[i].unit = TEMPER_UNAVAILABLE;
+		}
+	}
 	
 	return ret;
 }

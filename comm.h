@@ -32,20 +32,23 @@
 typedef struct Temper Temper;
 
 struct TemperData {
-	float tempA;
-	float tempB;
+	float value;
+	enum Unit {
+		TEMPER_UNAVAILABLE,	/* unavailable data */
+		TEMPER_REL_HUM, 	/* realtive humidity (in %) */
+		TEMPER_ABS_TEMP,	/* absolute temperature  (in K) */
+	} unit;
 };
 typedef struct TemperData TemperData;
 
 Temper *TemperCreateFromDeviceNumber(int deviceNum, int timeout, int debug);
 void TemperFree(Temper *t);
 
-int TemperGetTemperatureInC(Temper *t, float *tempC);
 int TempterGetOtherStuff(Temper *t, char *buf, int length);
 
 int TemperSendCommand8(Temper *t, int a, int b, int c, int d, int e, int f, int g, int h);
 int TemperSendCommand2(Temper *t, int a, int b);
-int TemperGetData(Temper *t, TemperData *data);
+int TemperGetData(Temper *t, TemperData *data, unsigned int count);
 
 int TemperInterruptRead(Temper* t, unsigned char *buf, unsigned int len);
 
