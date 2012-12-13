@@ -260,7 +260,7 @@ TemperSendCommand2(Temper *t, int a, int b)
 	return 0;
 }
 
-static int TemperInterruptRead(Temper* t, unsigned char *buf, unsigned int len) {
+int TemperInterruptRead(Temper* t, unsigned char *buf, unsigned int len) {
 	int ret;
 
 	if (t->debug) {

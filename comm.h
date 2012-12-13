@@ -45,5 +45,7 @@ int TemperSendCommand8(Temper *t, int a, int b, int c, int d, int e, int f, int 
 int TemperSendCommand2(Temper *t, int a, int b);
 int TemperGetData(Temper *t, TemperData *data);
 
+int TemperInterruptRead(Temper* t, unsigned char *buf, unsigned int len);
+
 #endif
 
