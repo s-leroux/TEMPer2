@@ -34,21 +34,26 @@
 
 #include "comm.h"
 
-#define USB_TIMEOUT 1000	/* milliseconds */
+#if !defined TEMPER_TIMEOUT
+#define TEMPER_TIMEOUT 1000	/* milliseconds */
+#endif
+
+#if !defined TEMPER_DEBUG
+#define TEMPER_DEBUG 0
+#endif
 
 int
 main(void)
 {
 	Temper *t;
-	char buf[256];
-	int i, ret;
+	int ret;
 
 	usb_set_debug(0);
 	usb_init();
 	usb_find_busses();
 	usb_find_devices();
 
-	t = TemperCreateFromDeviceNumber(0, USB_TIMEOUT, 1);
+	t = TemperCreateFromDeviceNumber(0, TEMPER_TIMEOUT, TEMPER_DEBUG);
 	if(!t) {
 		perror("TemperCreate");
 		exit(-1);
@@ -65,7 +70,6 @@ main(void)
 	TemperSendCommand(t, 0, 0, 0, 0, 0, 0, 0, 0);
 */
 
-	printf("[\n");
 //	TemperSendCommand2(t, 0x01,0x01);
 //	TemperSendCommand8(t, 0x48, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
 	TemperSendCommand8(t, 0x01, 0x80, 0x33, 0x01, 0x00, 0x00, 0x00, 0x00);
@@ -83,31 +87,6 @@ main(void)
 		printf("\n");
 	}
 
-	printf("]\n");
-#if 0
-	bzero(buf, 256);
-	ret = TemperGetOtherStuff(t, buf, 256);
-	printf("Other Stuff (%d bytes):\n", ret);
-	for(i = 0; i < ret; i++) {
-		printf(" %02x", buf[i] & 0xFF);
-		if(i % 16 == 15) {
-			printf("\n");
-		}
-	}
-	printf("\n");
-
-	for(;;) {
-		float tempc;
-
-		if(TemperGetTemperatureInC(t, &tempc) < 0) {
-			perror("TemperGetTemperatureInC");
-			exit(1);
-		}
-		printf("temperature %.2fF %.2fC\n", (9.0 / 5.0 * tempc + 32.0),
-		       tempc);
-		sleep(10);
-	}
-#endif
 	return 0;
 }
 
