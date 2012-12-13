@@ -49,10 +49,14 @@ static const struct Product ProductList[] = {
 	},
 */
 	{
+		/* Analog Device ADT75 (or similar) based device */
+		/* with two temperature sensors (internal & external) */
 		0x0c45, 0x7401,
 		"RDing TEMPer2V1.3"
 	},
 	{
+		/* Sensirion SHT1x based device */
+		/* with internal humidity & temperature sensor */
 		0x0c45, 0x7402,
 		"RDing TEMPerHumiV1.1"
 	},
