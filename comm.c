@@ -34,16 +34,6 @@
 
 #include "comm.h"
 
-typedef int (*TemperConvertFct)(Temper*, int16_t word, TemperData* dst);
-
-struct Product { 
-	uint16_t		vendor;
-	uint16_t		id;
-	const char		*name;
-	TemperConvertFct	convert[2]; /* Arbitrary limit ? */
-};
-
-
 static int TEMPer2V13ToTemperature(Temper*,int16_t word, TemperData* dst);
 static int TEMPerHUMToTemperature(Temper*,int16_t word, TemperData* dst);
 static int TEMPerHUMToHumidity(Temper*,int16_t word, TemperData* dst);
@@ -79,14 +69,6 @@ static const struct Product ProductList[] = {
 	},
 };
 static const unsigned ProductCount = sizeof(ProductList)/sizeof(struct Product);
-
-struct Temper {
-	struct usb_device *device;
-	usb_dev_handle *handle;
-	int debug;
-	int timeout;
-	const struct Product	*product;
-};
 
 Temper *
 TemperCreate(struct usb_device *dev, int timeout, int debug, const struct Product* product)

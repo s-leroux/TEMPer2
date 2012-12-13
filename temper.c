@@ -81,10 +81,12 @@ main(void)
 		TemperData data[2];
 		const unsigned int count = sizeof(data)/sizeof(TemperData);
 		ret = TemperGetData(t,data, count);
-		printf("ret = %d;", ret);
+		printf("%4d", ret);
 		for (unsigned i = 0; i < count; ++i)
-			printf("data[%d] = %f;%d;", i, data[i].value, data[i].unit);
-		printf("\n");
+			printf(";%f %s", 
+				data[i].value, 
+				TemperUnitToString(data[i].unit));
+		printf(";%s\n", t->product->name);
 	}
 
 	return 0;

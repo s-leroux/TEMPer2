@@ -29,8 +29,6 @@
  * 
  */
 
-typedef struct Temper Temper;
-
 struct TemperData {
 	float value;
 	enum Unit {
@@ -40,6 +38,30 @@ struct TemperData {
 	} unit;
 };
 typedef struct TemperData TemperData;
+
+#define TemperUnitToString(unit) ( (unit == TEMPER_ABS_TEMP) ? "°C" : \
+				   (unit == TEMPER_REL_HUM) ? "%RH" : \
+				   "" \
+	)
+
+struct Temper {
+        struct usb_device *device;
+        usb_dev_handle *handle;
+        int debug;
+        int timeout;
+        const struct Product    *product;
+};
+typedef struct Temper Temper;
+
+
+typedef int (*TemperConvertFct)(Temper*, int16_t word, TemperData* dst);
+
+struct Product {
+        uint16_t                vendor;
+        uint16_t                id;
+        const char              *name;
+        TemperConvertFct        convert[2]; /* Arbitrary limit ? */
+};
 
 Temper *TemperCreateFromDeviceNumber(int deviceNum, int timeout, int debug);
 void TemperFree(Temper *t);
